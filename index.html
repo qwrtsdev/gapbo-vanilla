@@ -7,28 +7,35 @@
     <title>Gapbo's Vanilla</title>
 
     <link href="/src/style.css" rel="stylesheet" />
+    <script type="module" src="/src/components/typingTextAnimation.js"></script>
     <script type="module" src="/src/components/imageElement.js"></script>
     <script type="module" src="/src/utils/cursor.js"></script>
   </head>
-  <body class="flex">
+  <body>
     <div
-      class="flex flex-col gap-8 justify-center items-center w-screen h-screen"
+      class="flex flex-col gap-8 justify-center items-center w-full min-h-screen py-12 px-4"
     >
-      <p class="font-arabica text-center text-3xl">
-        "วานิลลา" ไม่ใช่ประโยคบอกเล่า<br />แต่เป็นประโยคบอกลา
-      </p>
+      <div class="flex flex-col gap-3 justify-center items-center">
+        <typing-animation></typing-animation>
+        <p class="font-arabica text-center text-3xl">
+          ไม่ใช่ประโยคบอกเล่า แต่เป็นประโยคบอกลา
+        </p>
+        <p class="font-line text-center text-md text-neutral-500">
+          สร้างใบลาของคุณเองได้ง่ายๆ
+        </p>
+      </div>
 
-      <main class="gap-4 p-4 max-w-xl w-max font-line">
+      <main class="flex flex-col gap-4 w-full max-w-[425px] mx-auto font-line">
         <img-element></img-element>
 
-        <div class="flex flex-col gap-2 *:w-max">
+        <div class="flex flex-col gap-2 w-full">
           <input
             type="text"
             placeholder="ข้อความด้านบน"
             oninput="
               document.querySelector('img-element').upperText = this.value
             "
-            class="border border-gray-300 rounded-md p-4 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 focus:border-transparent"
+            class="w-full border border-gray-300 rounded-md p-4 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 focus:border-transparent"
           />
           <input
             type="text"
@@ -36,22 +43,67 @@
             oninput="
               document.querySelector('img-element').lowerText = this.value
             "
-            class="border border-gray-300 rounded-md p-4 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 focus:border-transparent"
+            class="w-full border border-gray-300 rounded-md p-4 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 focus:border-transparent"
           />
-          <button
-            class="bg-neutral-950 text-white rounded-md p-4 hover:bg-neutral-900"
-            onclick="document.querySelector('img-element').generateMeme()"
-          >
-            ดาวน์โหลดรูป
-          </button>
+          <div class="flex gap-2 w-full">
+            <button
+              class="flex-1 bg-[#F794BF] text-white rounded-md p-4 hover:bg-[#E07AAB]"
+              onclick="document.querySelector('img-element').generateMeme()"
+            >
+              ดาวน์โหลดรูป
+            </button>
+            <button
+              class="rounded-md px-4 bg-red-50 text-red-400"
+              onclick="
+                const el = document.querySelector('img-element');
+                el._imageUrl = null;
+                el.upperText = null;
+                el.lowerText = null;
+                document
+                  .querySelectorAll('input[type=text]')
+                  .forEach((i) => (i.value = ''));
+              "
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+            </button>
+          </div>
         </div>
       </main>
 
+      <div class="font-line text-center text-md flex flex-col gap-2">
+          ผลงานชิ้นนี้มีเจตนาสร้างขึ้นเพื่อ แซว ล้อเลียน แซะ และถมถุย
+          พี่แก๊ปเพียงเท่านั้น<br />โปรดใช้งานใบลาอย่างมีสติ และรับผิดชอบต่อสังคม
+        </p>
+        <p>
+          ด้วยรักจากเกม (ที่ไม่ใช่กึ๋ย) แต่เป็น qwrts เองกั๊บป๋ม
+          <a
+            href="https://bio.qwrts.dev"
+            target="_blank"
+            class="hover:underline text-blue-600"
+            >[มึงใครวะ]</a
+          >
+        </p>
+      </div>
       <span
         class="flex gap-4 justify-center items-center text-sm font-line text-neutral-600 *:hover:underline"
       >
         <a href="https://github.com/qwrtsdev/gapbo-vanilla" target="_blank"
-          >ดูซอร์สโค้ด</a
+          >ไปดูซอร์สโค้ด</a
         >
         <p class="font-bold text-lg">&middot;</p>
         <a
@@ -61,14 +113,20 @@
           class="cursor-none"
           >ไปดูแก๊ปโบ้</a
         >
+        <p class="font-bold text-lg">&middot;</p>
+        <a
+          href="https://discord.gg/gapbo"
+          target="_blank"
+          >คอมมูดิสแก๊ปโบ้</a
+        >
       </span>
+    </div>
 
-      <div
-        id="fake-cursor"
-        class="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 scale-0"
-      >
-        <img src="/public/gapbo.png" class="w-14 h-14 rounded-full" />
-      </div>
+    <div
+      id="fake-cursor"
+      class="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 scale-0"
+    >
+      <img src="/public/gapbo.png" class="w-14 h-14 rounded-full" />
     </div>
   </body>
 </html>

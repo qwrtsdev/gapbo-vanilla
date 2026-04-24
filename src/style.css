@@ -6,9 +6,6 @@
 
 body {
   margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,7 +17,7 @@ body {
   font-family: arabica;
   font-style: normal;
   font-display: swap;
-  src: url("/public//Arabica.ttf") format("truetype");
+  src: url("/public/Arabica.ttf") format("truetype");
 }
 
 @font-face {
@@ -33,4 +30,14 @@ body {
 @theme {
   --font-arabica: "arabica", serif;
   --font-line: "line", serif;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
