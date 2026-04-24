@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+:root {
+  --cursor-gapbo: url("/public/gapbo.png"), pointer;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+@font-face {
+  font-family: arabica;
+  font-style: normal;
+  font-display: swap;
+  src: url("/public//Arabica.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: line;
+  font-style: normal;
+  font-display: swap;
+  src: url("/public/lineseed.woff2") format("woff2");
+}
+
+@theme {
+  --font-arabica: "arabica", serif;
+  --font-line: "line", serif;
+}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gapbo's Vanilla</title>
+
+    <link href="/src/style.css" rel="stylesheet" />
+    <script type="module" src="/src/components/imageElement.js"></script>
+    <script type="module" src="/src/utils/cursor.js"></script>
+  </head>
+  <body class="flex">
+    <div
+      class="flex flex-col gap-8 justify-center items-center w-screen h-screen"
+    >
+      <p class="font-arabica text-center text-3xl">
+        "วานิลลา" ไม่ใช่ประโยคบอกเล่า<br />แต่เป็นประโยคบอกลา
+      </p>
+
+      <main class="gap-4 p-4 max-w-xl w-max font-line">
+        <img-element></img-element>
+
+        <div class="flex flex-col gap-2 *:w-max">
+          <input
+            type="text"
+            placeholder="ข้อความด้านบน"
+            oninput="
+              document.querySelector('img-element').upperText = this.value
+            "
+            class="border border-gray-300 rounded-md p-4 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 focus:border-transparent"
+          />
+          <input
+            type="text"
+            placeholder="ข้อความด้านล่าง"
+            oninput="
+              document.querySelector('img-element').lowerText = this.value
+            "
+            class="border border-gray-300 rounded-md p-4 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 focus:border-transparent"
+          />
+          <button
+            class="bg-neutral-950 text-white rounded-md p-4 hover:bg-neutral-900"
+            onclick="document.querySelector('img-element').generateMeme()"
+          >
+            ดาวน์โหลดรูป
+          </button>
+        </div>
+      </main>
+
+      <span
+        class="flex gap-4 justify-center items-center text-sm font-line text-neutral-600 *:hover:underline"
+      >
+        <a href="https://github.com/qwrtsdev/gapbo-vanilla" target="_blank"
+          >ดูซอร์สโค้ด</a
+        >
+        <p class="font-bold text-lg">&middot;</p>
+        <a
+          href="https://www.youtube.com/gapbo"
+          target="_blank"
+          id="cursor_zone"
+          class="cursor-none"
+          >ไปดูแก๊ปโบ้</a
+        >
+      </span>
+
+      <div
+        id="fake-cursor"
+        class="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 scale-0"
+      >
+        <img src="/public/gapbo.png" class="w-14 h-14 rounded-full" />
+      </div>
+    </div>
+  </body>
+</html>
