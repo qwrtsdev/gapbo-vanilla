@@ -20,73 +20,78 @@ export async function generateMeme(imgElement) {
   const img = new Image();
   img.src = imageUrl;
 
-  img.onload = () => {
-    const size = Math.min(img.width, img.height);
-    const sx = (img.width - size) / 2;
-    const sy = (img.height - size) / 2;
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+  });
 
-    canvas.width = size;
-    canvas.height = size;
+  const size = Math.min(img.width, img.height);
+  const sx = (img.width - size) / 2;
+  const sy = (img.height - size) / 2;
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+  canvas.width = size;
+  canvas.height = size;
 
-    const padX = size * 0.03; // left padding
-    const padBottom = size * 0.03; // bottom padding
-    const lineGap = size * 0.01; // gap between upper and lower line
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
 
-    const drawText = (text, color, y) => {
-      let fontSize = size * 0.12; // start at 12% of size (matches reference)
+  const padX = size * 0.03;
+  const padBottom = size * 0.03;
+  const lineGap = size * 0.01;
+
+  const getFontSize = (text) => {
+    if (!text) return 0;
+
+    let fontSize = size * 0.12;
+    ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
+
+    while (ctx.measureText(text).width > size * 0.97 && fontSize > 8) {
+      fontSize -= 1;
       ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
+    }
 
-      // shrink only when text actually exceeds 97% of canvas width
-      while (ctx.measureText(text).width > size * 0.97 && fontSize > 8) {
-        fontSize -= 1;
-        ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
-      }
+    return fontSize;
+  };
 
-      // heavy hard shadow instead of stroke
-      const sh = Math.max(fontSize * 0.06, 3);
-      ctx.shadowColor = "rgba(0,0,0,0.95)";
-      ctx.shadowBlur = 2;
-      ctx.shadowOffsetX = sh;
-      ctx.shadowOffsetY = sh;
+  const drawText = (text, color, y, fontSize) => {
+    if (!text) return;
 
-      ctx.textAlign = "left";
-      ctx.fillStyle = color;
-      ctx.fillText(text, padX, y);
+    ctx.save();
+    ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "bottom";
+    ctx.fillStyle = color;
 
-      // reset shadow
-      ctx.shadowColor = "transparent";
+    const shadowLayers = [8, 8, 8, 8, 16, 16, 16, 24, 32];
+
+    for (const blur of shadowLayers) {
+      ctx.shadowColor = "rgba(0,0,0,1)";
+      ctx.shadowBlur = blur;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
-      ctx.shadowBlur = 0;
-    };
+      ctx.fillText(text, padX, y);
+    }
 
-    // measure both lines to position them from the bottom up
-    const getFontSize = (text) => {
-      let fontSize = size * 0.12;
-      ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
-      while (ctx.measureText(text).width > size * 0.97 && fontSize > 8) {
-        fontSize -= 1;
-        ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
-      }
-      return fontSize;
-    };
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.fillText(text, padX, y);
 
-    const lowerFontSize = lowerText ? getFontSize(lowerText) : 0;
-    const upperFontSize = upperText ? getFontSize(upperText) : 0;
-
-    // y positions: lower line sits at bottom, upper line sits above it
-    const lowerY = size - padBottom;
-    const upperY = lowerY - lowerFontSize - lineGap;
-
-    if (lowerText) drawText(lowerText, "#FFE600", lowerY);
-    if (upperText) drawText(upperText, "#FF1F8E", upperY);
-
-    const a = document.createElement("a");
-    a.download = "gapbo-vanilla.png";
-    a.href = canvas.toDataURL("image/png");
-    a.click();
+    ctx.restore();
   };
+
+  const lowerFontSize = lowerText ? getFontSize(lowerText) : 0;
+  const upperFontSize = upperText ? getFontSize(upperText) : 0;
+
+  const lowerY = size - padBottom;
+  const upperY = lowerText ? lowerY - lowerFontSize - lineGap : lowerY;
+
+  if (lowerText) drawText(lowerText, "#FFE600", lowerY, lowerFontSize);
+  if (upperText) drawText(upperText, "#FF1F8E", upperY, upperFontSize);
+
+  const a = document.createElement("a");
+  a.download = "gapbo-vanilla.png";
+  a.href = canvas.toDataURL("image/png");
+  a.click();
 }
