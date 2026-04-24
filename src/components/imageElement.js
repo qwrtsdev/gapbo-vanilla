@@ -1,3 +1,5 @@
+//imageElement.js
+
 import { LitElement, html, unsafeCSS } from "lit";
 import tailwind from "../style.css?inline";
 import { generateMeme } from "../utils/save.js";
@@ -7,6 +9,7 @@ const ALLOWED_FILES = ["image/jpeg", "image/png", "image/webp"];
 export class ImageElement extends LitElement {
   static get properties() {
     return {
+      effectType: { type: Number },
       upperText: { type: String },
       lowerText: { type: String },
       _imageUrl: { state: true },
@@ -23,16 +26,21 @@ export class ImageElement extends LitElement {
         :host { display: block; width: 100%; }
 
         .meme-text {
-          font-family: 'Impact', 'Arial Black', sans-serif;
-          font-weight: 900;
-          line-height: 1.15;
+          font-family: 'Cordia UPC', serif;
+          font-weight: 700;
+          line-height: 1;
           white-space: nowrap;
           display: block;
           text-shadow:
-            -3px -3px 0 #000,  3px -3px 0 #000,
-            -3px  3px 0 #000,  3px  3px 0 #000,
-            -5px  0   0 #000,  5px  0   0 #000,
-             0   -5px 0 #000,  0    5px 0 #000;
+            0 0 8px rgba(0,0,0,1),
+            0 0 8px rgba(0,0,0,1),
+            0 0 8px rgba(0,0,0,1),
+            0 0 8px rgba(0,0,0,1),
+            0 0 16px rgba(0,0,0,1),
+            0 0 16px rgba(0,0,0,1),
+            0 0 16px rgba(0,0,0,1),
+            0 0 24px rgba(0,0,0,0.95),
+            0 0 32px rgba(0,0,0,0.9);
         }
       `),
     ];
@@ -44,12 +52,13 @@ export class ImageElement extends LitElement {
     this.lowerText = null;
     this._imageUrl = null;
     this._isDragging = false;
-    this._upperSize = 9;
-    this._lowerSize = 9;
+    this._upperSize = 12;
+    this._lowerSize = 12;
     this._measureCanvas = document.createElement("canvas");
   }
 
-  _calcFitSize(text, maxCqw = 94, baseCqw = 9) {
+  // fix _calcFitSize — was measuring with Impact, now uses Cordia UPC
+  _calcFitSize(text, maxCqw = 97, baseCqw = 12) {
     if (!text) return baseCqw;
     const ctx = this._measureCanvas.getContext("2d");
 
@@ -57,9 +66,9 @@ export class ImageElement extends LitElement {
     const containerPx = zone ? zone.getBoundingClientRect().width : 400;
 
     const maxPx = containerPx * (maxCqw / 100);
-    let sizePx = containerPx * (baseCqw / 100);
+    const sizePx = containerPx * (baseCqw / 100);
 
-    ctx.font = `900 ${sizePx}px Impact, Arial Black, sans-serif`;
+    ctx.font = `700 ${sizePx}px "Cordia UPC", serif`; // ← correct font
     const textPx = ctx.measureText(text).width;
 
     if (textPx <= maxPx) return baseCqw;
@@ -112,6 +121,16 @@ export class ImageElement extends LitElement {
     generateMeme(this);
   }
 
+  async connectedCallback() {
+    super.connectedCallback();
+    const font = new FontFace("Cordia UPC", "url('/CordiaUPC-Bold.ttf')", {
+      weight: "700",
+      style: "normal",
+    });
+    await font.load();
+    document.fonts.add(font);
+  }
+
   render() {
     const zoneClass = [
       "drop-zone relative w-full rounded-xl overflow-hidden cursor-pointer",
@@ -120,7 +139,7 @@ export class ImageElement extends LitElement {
       "transition-colors duration-200",
       this._imageUrl
         ? "border-solid border-gray-200"
-        : "hover:border-gray-400 hover:bg-gray-100",
+        : "hover:border-[#F794BF] hover:bg-pink-50",
       this._isDragging ? "!border-[#F794BF] !bg-pink-50" : "",
     ].join(" ");
 
@@ -164,7 +183,7 @@ export class ImageElement extends LitElement {
 
               <div
                 class="absolute inset-0 flex flex-col justify-end items-start pointer-events-none"
-                style="padding: 3cqw; gap: 0.5cqw"
+                style="padding: 3cqw 3cqw 3cqw 3cqw; gap: 1cqw"
               >
                 ${this.upperText
                   ? html`

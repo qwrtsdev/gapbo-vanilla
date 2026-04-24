@@ -2,11 +2,11 @@ import { LitElement, css, html, unsafeCSS } from "lit";
 import tailwind from "../style.css?inline";
 
 const words = [
-  "ตัด MV เพลง",
+  "เดี๋ยวจะทำนะ",
+  "จะตัด MV เพลง",
   "พรุ่งนี้น่าจะมา",
   "ไปออกกอง",
-  "เดี๋ยวจะทำนะ",
-  "วันนี้ปวดขา",
+  "ดูมีมแบบคว่ำๆ",
 ];
 
 export class TypingAnimationElement extends LitElement {
@@ -19,11 +19,36 @@ export class TypingAnimationElement extends LitElement {
   static styles = [
     unsafeCSS(tailwind),
     css`
+      :host {
+        display: block;
+        width: 100%;
+      }
+
+      .wrap {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .typing {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        white-space: nowrap;
+        line-height: 1.6;
+        overflow: hidden;
+        font-size: clamp(2.5rem, 10vw, 4rem);
+      }
+
       .cursor {
         display: inline-block;
         width: 2px;
+        height: 0.9em;
         background-color: currentColor;
         margin-left: 1px;
+        flex-shrink: 0;
         animation: blink 0.7s step-end infinite;
       }
 
@@ -86,9 +111,11 @@ export class TypingAnimationElement extends LitElement {
 
   render() {
     return html`
-      <span class="font-arabica text-6xl"
-        >"${this._displayText}<span class="cursor">&nbsp;</span>"</span
-      >
+      <div class="wrap">
+        <span class="typing font-arabica">
+          "${this._displayText}<span class="cursor"></span>"
+        </span>
+      </div>
     `;
   }
 }

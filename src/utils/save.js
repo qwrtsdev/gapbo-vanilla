@@ -1,16 +1,26 @@
-export function generateMeme(imgElement) {
+async function loadFont() {
+  const font = new FontFace("Cordia UPC", "url('/CordiaUPC-Bold.ttf')", {
+    weight: "700",
+    style: "normal",
+  });
+  await font.load();
+  document.fonts.add(font);
+}
+
+export async function generateMeme(imgElement) {
   const imageUrl = imgElement._imageUrl;
   const upperText = imgElement.upperText;
   const lowerText = imgElement.lowerText;
 
   if (!imageUrl) return;
 
+  await loadFont();
+
   const canvas = document.createElement("canvas");
   const img = new Image();
   img.src = imageUrl;
 
   img.onload = () => {
-    // --- crop to 1:1 center (same as object-fit: cover) ---
     const size = Math.min(img.width, img.height);
     const sx = (img.width - size) / 2;
     const sy = (img.height - size) / 2;
@@ -20,32 +30,59 @@ export function generateMeme(imgElement) {
 
     const ctx = canvas.getContext("2d");
     ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
-    // ------------------------------------------------------
 
-    const drawText = (text, color, yFromBottom) => {
-      const baseFontPx = size * 0.09;
-      let fontSize = baseFontPx;
-      ctx.font = `900 ${fontSize}px Impact, Arial Black, sans-serif`;
+    const padX = size * 0.03; // left padding
+    const padBottom = size * 0.03; // bottom padding
+    const lineGap = size * 0.01; // gap between upper and lower line
 
-      while (ctx.measureText(text).width > size * 0.94 && fontSize > 8) {
+    const drawText = (text, color, y) => {
+      let fontSize = size * 0.12; // start at 12% of size (matches reference)
+      ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
+
+      // shrink only when text actually exceeds 97% of canvas width
+      while (ctx.measureText(text).width > size * 0.97 && fontSize > 8) {
         fontSize -= 1;
-        ctx.font = `900 ${fontSize}px Impact, Arial Black, sans-serif`;
+        ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
       }
 
-      ctx.textAlign = "left";
-      ctx.lineJoin = "round";
-      ctx.lineWidth = fontSize * 0.2;
-      ctx.strokeStyle = "#000";
-      ctx.fillStyle = color;
+      // heavy hard shadow instead of stroke
+      const sh = Math.max(fontSize * 0.06, 3);
+      ctx.shadowColor = "rgba(0,0,0,0.95)";
+      ctx.shadowBlur = 2;
+      ctx.shadowOffsetX = sh;
+      ctx.shadowOffsetY = sh;
 
-      const x = size * 0.03;
-      const y = size - yFromBottom;
-      ctx.strokeText(text, x, y);
-      ctx.fillText(text, x, y);
+      ctx.textAlign = "left";
+      ctx.fillStyle = color;
+      ctx.fillText(text, padX, y);
+
+      // reset shadow
+      ctx.shadowColor = "transparent";
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowBlur = 0;
     };
 
-    if (lowerText) drawText(lowerText, "#FFE600", size * 0.04);
-    if (upperText) drawText(upperText, "#FF1F8E", size * 0.13);
+    // measure both lines to position them from the bottom up
+    const getFontSize = (text) => {
+      let fontSize = size * 0.12;
+      ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
+      while (ctx.measureText(text).width > size * 0.97 && fontSize > 8) {
+        fontSize -= 1;
+        ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
+      }
+      return fontSize;
+    };
+
+    const lowerFontSize = lowerText ? getFontSize(lowerText) : 0;
+    const upperFontSize = upperText ? getFontSize(upperText) : 0;
+
+    // y positions: lower line sits at bottom, upper line sits above it
+    const lowerY = size - padBottom;
+    const upperY = lowerY - lowerFontSize - lineGap;
+
+    if (lowerText) drawText(lowerText, "#FFE600", lowerY);
+    if (upperText) drawText(upperText, "#FF1F8E", upperY);
 
     const a = document.createElement("a");
     a.download = "gapbo-vanilla.png";

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --cursor-gapbo: url("/public/gapbo.png"), pointer;
+  --cursor-gapbo: url("/gapbo.png"), pointer;
 }
 
 body {
@@ -17,14 +17,14 @@ body {
   font-family: arabica;
   font-style: normal;
   font-display: swap;
-  src: url("/public/Arabica.ttf") format("truetype");
+  src: url("/Arabica.ttf") format("truetype");
 }
 
 @font-face {
   font-family: line;
   font-style: normal;
   font-display: swap;
-  src: url("/public/lineseed.woff2") format("woff2");
+  src: url("/lineseed.woff2") format("woff2");
 }
 
 @theme {
