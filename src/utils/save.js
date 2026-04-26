@@ -7,6 +7,76 @@ async function loadFont() {
   document.fonts.add(font);
 }
 
+const OUTPUT_SIZE = 1080;
+
+const PAD_X = OUTPUT_SIZE * 0.03; // 3cqw  -> 32.4px
+const PAD_BOTTOM = OUTPUT_SIZE * 0.03; // 3cqw  -> 32.4px
+const LINE_GAP = OUTPUT_SIZE * 0.01; // 1cqw  -> 10.8px
+const BASE_FONT = OUTPUT_SIZE * 0.12; // 12cqw -> 129.6px  (starting / max size)
+const MAX_WIDTH = OUTPUT_SIZE * 0.97; // 97cqw -> 1047.6px (text shrink)
+
+function drawTextWithShadow(ctx, text, x, y, fontSize, color) {
+  const pad = Math.ceil(fontSize * 0.5); // enough room so blur never clips
+
+  const offscreen = document.createElement("canvas");
+  offscreen.width = OUTPUT_SIZE + pad * 2;
+  offscreen.height = fontSize + pad * 2;
+  const off = offscreen.getContext("2d");
+  off.font = `700 ${fontSize}px "Cordia UPC", serif`;
+  off.fillStyle = color;
+  off.textAlign = "left";
+  off.textBaseline = "bottom";
+  off.fillText(text, pad, pad + fontSize);
+
+  const shadowStamp = document.createElement("canvas");
+  shadowStamp.width = offscreen.width;
+  shadowStamp.height = offscreen.height;
+  const ss = shadowStamp.getContext("2d");
+  ss.drawImage(offscreen, 0, 0);
+  ss.globalCompositeOperation = "source-in";
+  ss.fillStyle = "#000";
+  ss.fillRect(0, 0, shadowStamp.width, shadowStamp.height);
+
+  const dx = x - pad;
+  const dy = y - fontSize - pad;
+
+  const shadowLayers = [
+    { blur: 8, alpha: 1.0 },
+    { blur: 8, alpha: 1.0 },
+    { blur: 8, alpha: 1.0 },
+    { blur: 8, alpha: 1.0 },
+    { blur: 16, alpha: 1.0 },
+    { blur: 16, alpha: 1.0 },
+    { blur: 16, alpha: 1.0 },
+    { blur: 24, alpha: 0.95 },
+    { blur: 32, alpha: 0.9 },
+  ];
+
+  ctx.save();
+
+  for (const { blur, alpha } of shadowLayers) {
+    ctx.globalAlpha = alpha;
+    ctx.filter = `blur(${blur}px)`;
+    ctx.drawImage(shadowStamp, dx, dy);
+  }
+
+  ctx.filter = "none";
+  ctx.globalAlpha = 1;
+  ctx.drawImage(offscreen, dx, dy);
+
+  ctx.restore();
+}
+
+function getFontSize(ctx, text) {
+  let fontSize = BASE_FONT;
+  ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
+  while (ctx.measureText(text).width > MAX_WIDTH && fontSize > 8) {
+    fontSize -= 1;
+    ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
+  }
+  return fontSize;
+}
+
 export async function generateMeme(imgElement) {
   const imageUrl = imgElement._imageUrl;
   const upperText = imgElement.upperText;
@@ -16,76 +86,54 @@ export async function generateMeme(imgElement) {
 
   await loadFont();
 
-  const canvas = document.createElement("canvas");
   const img = new Image();
   img.src = imageUrl;
 
   img.onload = () => {
-    const size = Math.min(img.width, img.height);
-    const sx = (img.width - size) / 2;
-    const sy = (img.height - size) / 2;
-
-    canvas.width = size;
-    canvas.height = size;
-
+    const canvas = document.createElement("canvas");
+    canvas.width = OUTPUT_SIZE;
+    canvas.height = OUTPUT_SIZE;
     const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
 
-    const padX = size * 0.03; // left padding
-    const padBottom = size * 0.03; // bottom padding
-    const lineGap = size * 0.01; // gap between upper and lower line
+    const srcSize = Math.min(img.width, img.height);
+    const sx = (img.width - srcSize) / 2;
+    const sy = (img.height - srcSize) / 2;
+    ctx.drawImage(
+      img,
+      sx,
+      sy,
+      srcSize,
+      srcSize,
+      0,
+      0,
+      OUTPUT_SIZE,
+      OUTPUT_SIZE,
+    );
 
-    const drawText = (text, color, y) => {
-      let fontSize = size * 0.12; // start at 12% of size (matches reference)
-      ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
+    const lowerFontSize = lowerText ? getFontSize(ctx, lowerText) : 0;
+    const upperFontSize = upperText ? getFontSize(ctx, upperText) : 0;
 
-      // shrink only when text actually exceeds 97% of canvas width
-      while (ctx.measureText(text).width > size * 0.97 && fontSize > 8) {
-        fontSize -= 1;
-        ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
-      }
+    const lowerY = OUTPUT_SIZE - PAD_BOTTOM;
+    const upperY = lowerText ? lowerY - lowerFontSize - LINE_GAP : lowerY;
 
-      ctx.textAlign = "left";
-      ctx.textBaseline = "bottom";
-      ctx.fillStyle = color;
-
-      // stacked soft shadows (match CSS)
-      const shadowLayers = [8, 8, 8, 8, 16, 16, 16, 24, 32];
-
-      for (const blur of shadowLayers) {
-        ctx.shadowColor = "rgba(0,0,0,1)";
-        ctx.shadowBlur = blur;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-        ctx.fillText(text, padX, y);
-      }
-
-      // final crisp fill
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-      ctx.fillText(text, padX, y);
-    };
-
-    // measure both lines to position them from the bottom up
-    const getFontSize = (text) => {
-      let fontSize = size * 0.12;
-      ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
-      while (ctx.measureText(text).width > size * 0.97 && fontSize > 8) {
-        fontSize -= 1;
-        ctx.font = `700 ${fontSize}px "Cordia UPC", serif`;
-      }
-      return fontSize;
-    };
-
-    const lowerFontSize = lowerText ? getFontSize(lowerText) : 0;
-    const upperFontSize = upperText ? getFontSize(upperText) : 0;
-
-    // y positions: lower line sits at bottom, upper line sits above it
-    const lowerY = size - padBottom;
-    const upperY = lowerText ? lowerY - lowerFontSize - lineGap : lowerY;
-
-    if (lowerText) drawText(lowerText, "#FFE600", lowerY);
-    if (upperText) drawText(upperText, "#FF1F8E", upperY);
+    if (lowerText)
+      drawTextWithShadow(
+        ctx,
+        lowerText,
+        PAD_X,
+        lowerY,
+        lowerFontSize,
+        "#FFE600",
+      );
+    if (upperText)
+      drawTextWithShadow(
+        ctx,
+        upperText,
+        PAD_X,
+        upperY,
+        upperFontSize,
+        "#FF1F8E",
+      );
 
     const a = document.createElement("a");
     a.download = "gapbo-vanilla.png";
